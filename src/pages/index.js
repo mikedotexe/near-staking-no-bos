@@ -16,6 +16,8 @@ import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
 import { useRouter } from "next/navigation"
 import StakingUI from "@/components/StakingUI";
 
+import WalletContext from '@/contexts/WalletContext';
+
 export const NETWORK = process.env.NEXT_PUBLIC_NETWORK || 'mainnet'
 export const CONTRACT_ID = process.env.NEXT_PUBLIC_CONTRACT_NAME || 'count.mike.near'
 
@@ -223,7 +225,9 @@ export default function HomePage() {
                             <div>
                                 {accountId && nearProvider && accountConn &&
                                     (
-                                        <StakingUI accountId={accountId} provider={nearProvider} accountConn={accountConn} />
+                                        <WalletContext.Provider value={{ wallet }}>
+                                            <StakingUI accountId={accountId} provider={nearProvider} accountConn={accountConn} />
+                                        </WalletContext.Provider>
                                     )
                                 }
                             </div>

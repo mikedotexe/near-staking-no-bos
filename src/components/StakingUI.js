@@ -1,9 +1,14 @@
 import ProgressBar from "@/components/ProgressBar";
-import {useState, useEffect, useMemo, useCallback} from "react";
+import {useState, useEffect, useMemo, useCallback, useContext} from "react";
 import { mainnetValidators } from "@/components/getValidators"
 import * as nearAPI from "near-api-js"
+
+import WalletContext from '@/contexts/WalletContext';
+
 export const StakingUI = ({accountId, provider, accountConn}) => {
     if (!accountId || !provider || !accountConn) return
+
+    const { wallet } = useContext(WalletContext);
 
     const yoctoZeroes = "000000000000000000000000";
 
@@ -32,14 +37,50 @@ export const StakingUI = ({accountId, provider, accountConn}) => {
             // eventually add fade-out effect
             setShowStakingModal(false);
         };
-        const handleUnstake = (validatorAddress) => {
+        const handleUnstake = async (validatorAddress) => {
             console.log("Unstaking…", {validatorAddress, yoctoAmount});
+            await wallet.signAndSendTransaction({
+                receiverId: validatorAddress,
+                actions: [{
+                    type: "FunctionCall",
+                    params: {
+                        methodName: "unstake",
+                        args: { amount: yoctoAmount },
+                        gas: "30000000000000",
+                        deposit: "0",
+                    }
+                }]
+            })
         };
-        const handleStake = (validatorAddress) => {
+        const handleStake = async (validatorAddress) => {
             console.log("Staking…", {validatorAddress, yoctoAmount});
+            await wallet.signAndSendTransaction({
+                receiverId: validatorAddress,
+                actions: [{
+                    type: "FunctionCall",
+                    params: {
+                        methodName: "deposit_and_stake",
+                        args: { amount: yoctoAmount },
+                        gas: "30000000000000",
+                        deposit: yoctoAmount,
+                    }
+                }]
+            })
         };
-        const handleWithdraw = (validatorAddress) => {
+        const handleWithdraw = async (validatorAddress) => {
             console.log("Withdrawing…", {validatorAddress, yoctoAmount});
+            await wallet.signAndSendTransaction({
+                receiverId: validatorAddress,
+                actions: [{
+                    type: "FunctionCall",
+                    params: {
+                        methodName: "withdraw",
+                        args: { amount: yoctoAmount },
+                        gas: "30000000000000",
+                        deposit: "0",
+                    }
+                }]
+            })
         };
 
         const containerStyle = {
