@@ -14,13 +14,16 @@ import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
 
 // note this is different from prior NextJS versions of router from "next/router"
 import { useRouter } from "next/navigation"
+import StakingUI from "@/components/StakingUI";
 
-const NETWORK = process.env.NEXT_PUBLIC_NETWORK || 'testnet'
-const CONTRACT_ID = process.env.NEXT_PUBLIC_CONTRACT_NAME || 'cna.mike.testnet'
+export const NETWORK = process.env.NEXT_PUBLIC_NETWORK || 'mainnet'
+export const CONTRACT_ID = process.env.NEXT_PUBLIC_CONTRACT_NAME || 'count.mike.near'
 
 export default function HomePage() {
     // todo we wanna use this
     const [nearProvider, setNearProvider] = useState(null)
+    const [nearConn, setNearConn] = useState(null)
+    const [accountConn, setAccountConn] = useState(null)
     const [wallet, setWallet] = useState(null)
     const [walletSelector, setWalletSelector] = useState(null)
     // Would be cool to setContract based on URL params.
@@ -57,7 +60,6 @@ export default function HomePage() {
             }
 
             // The user is logged in at this point
-            console.log('User logged in.')
             const walletSelectorStore = walletSelector.store.getState()
             const accounts = walletSelectorStore.accounts
             setWalletSelector(walletSelector)
@@ -68,7 +70,7 @@ export default function HomePage() {
             setAccountId(accountId)
 
             const publicKey = accounts[0].publicKey
-            const nodeUrl = options.network.nodeUrl
+            const nodeUrl = options.network.nodeUrl || "https://rpc.mainnet.near.org"
 
             const provider = new nearAPI.providers.JsonRpcProvider({
                 url: nodeUrl
@@ -76,6 +78,16 @@ export default function HomePage() {
 
             // So we can use it later
             setNearProvider(provider)
+
+            const nearConn = await nearAPI.connect({
+                networkId: NETWORK,
+                nodeUrl: nodeUrl
+            })
+
+            setNearConn(nearConn)
+            // we just need this to query, but you must supply something valid
+            const accountConn = await nearConn.account("mike.near")
+            setAccountConn(accountConn)
 
             // we'll see if the access key still exists
             // if it doesn't exist, it'll throw an error, hence try catch
@@ -87,18 +99,16 @@ export default function HomePage() {
                     account_id: accountId,
                     public_key: publicKey,
                 })
-
-                // So I guess you don't do anything if it succeeds.
+                // So I guess you don't need to do anything if it succeeds.
             } catch (e) {
                 // Quite a bummer to have to handle errors like this. Onward.
                 // This too shall pass.
                 if (e.toString().includes(`access key ${publicKey} does not exist while viewing`)) {
                     console.log('Access key not on account, removing…')
                     // so seems like the key will persist here, so we'll manually remove it from local storage after calling the wallet.signOut, which we can't rely on for full removal, at least for MNW that i've been testing
+                    // I'd rather use the keyStore set up in the nearConn earlier but don't know how lol
                     const keyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore()
-                    console.log('keyStore', keyStore)
                     await wallet.signOut()
-
                     // This method works fine if it's not found, btw.
                     await keyStore.removeKey(NETWORK, accountId)
                     console.log('Access key removed.')
@@ -119,7 +129,6 @@ export default function HomePage() {
         const hackToFixUrlParams = async () => {
             if (typeof window !== "undefined") {
                 const url = new URL(window.location)
-                console.log('aloha current window local url', url)
                 await router.replace(url.origin)
             }
 
@@ -144,7 +153,6 @@ export default function HomePage() {
             const accounts = await wallet.getAccounts()
             if (accounts.length > 0) {
                 publicKey = accounts[0].publicKey
-                console.log("Public Key of the logged-in user:", publicKey)
             } else {
                 console.warn("No accounts found")
             }
@@ -172,19 +180,43 @@ export default function HomePage() {
         }
     }
 
+    // console.log('aloha accountId',accountId)
+    // console.log('aloha nearProvider',nearProvider)
+    // console.log('aloha nearConn', nearConn)
     return (
         <main>
-            <div style={{textAlign: 'center'}}>
-                <h1>Staking without BOS</h1>
+            <div>
                 <div>
                     {isSignedIn ? (
-                        <button onClick={signOut}>
-                            Log out
-                        </button>
+                        <>
+                            <div style={{
+                                textAlign: "right"
+                            }}>
+                                <button onClick={signOut} style={{
+                                    textAlign: "right"
+                                }}>
+                                    Log out
+                                </button>
+                            </div>
+                            <hr style={{color: "white"}} />
+                            <div>
+                                {accountId && nearProvider && accountConn &&
+                                    (
+                                        <StakingUI accountId={accountId} provider={nearProvider} accountConn={accountConn} />
+                                    )
+                                }
+                            </div>
+                        </>
                     ): (
-                        <button onClick={showWalletSelectorModal}>
-                            Login
-                        </button>
+                        <div style={{
+                            textAlign: "right"
+                        }}>
+                            <button onClick={showWalletSelectorModal} style={{
+                                textAlign: "right"
+                            }}>
+                                Login
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
