@@ -92,31 +92,52 @@ export default function HomePage() {
             // we'll see if the access key still exists
             // if it doesn't exist, it'll throw an error, hence try catch
             // some day monads will rule the world
-            try {
-                await provider.query({
-                    request_type: "view_access_key",
-                    finality: "final",
-                    account_id: accountId,
-                    public_key: publicKey,
-                })
-                // So I guess you don't need to do anything if it succeeds.
-            } catch (e) {
-                // Quite a bummer to have to handle errors like this. Onward.
-                // This too shall pass.
-                if (e.toString().includes(`access key ${publicKey} does not exist while viewing`)) {
-                    console.log('Access key not on account, removing…')
-                    // so seems like the key will persist here, so we'll manually remove it from local storage after calling the wallet.signOut, which we can't rely on for full removal, at least for MNW that i've been testing
-                    // I'd rather use the keyStore set up in the nearConn earlier but don't know how lol
-                    const keyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore()
-                    await wallet.signOut()
-                    // This method works fine if it's not found, btw.
-                    await keyStore.removeKey(NETWORK, accountId)
-                    console.log('Access key removed.')
-                    // Reset dem state vars
-                    setAccountId(null)
-                    setIsSignedIn(false)
-                } else {
-                    console.error('Unexpected access key error. Tell @mikedotexe', e)
+
+
+            // Function to delay execution
+            const delay = ms => new Promise(res => setTimeout(res, ms));
+
+            // Try querying up to 3 times with a 1-second delay between attempts
+            let attempts = 0;
+            const maxAttempts = 3;
+            while (attempts < maxAttempts) {
+                try {
+                    await provider.query({
+                        request_type: "view_access_key",
+                        finality: "final",
+                        account_id: accountId,
+                        public_key: publicKey,
+                    });
+                    // Success, so break out of the loop
+                    console.log('Query succeeded');
+                    break; // Exit the loop if query succeeds
+                } catch (e) {
+                    attempts++;
+                    console.log(`Attempting #${attempts} to confirm access key existence failed.`);
+                    if (attempts >= maxAttempts) {
+                        console.log('Tried to confirm access key a few times, not found. Removing…');
+                        // Quite a bummer to have to handle errors like this. Onward.
+                        // This too shall pass.
+                        if (e.toString().includes(`access key ${publicKey} does not exist while viewing`)) {
+                            console.log('Access key not on account, removing…')
+                            // so seems like the key will persist here, so we'll manually remove it from local storage after calling the wallet.signOut, which we can't rely on for full removal, at least for MNW that i've been testing
+                            // I'd rather use the keyStore set up in the nearConn earlier but don't know how lol
+                            const keyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore()
+                            await wallet.signOut()
+                            // This method works fine if it's not found, btw.
+                            await keyStore.removeKey(NETWORK, accountId)
+                            console.log('Access key removed.')
+                            // Reset dem state vars
+                            setAccountId(null)
+                            setIsSignedIn(false)
+                        } else {
+                            console.error('Unexpected access key error. Tell @mikedotexe', e)
+                        }
+                        break
+                    } else {
+                        // Wait for 1 second before the next attempt
+                        await delay(1000);
+                    }
                 }
             }
         }
