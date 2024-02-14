@@ -3,6 +3,12 @@
 import React, { useEffect, useState } from 'react'
 import * as nearAPI from "near-api-js"
 
+// note this is different from prior NextJS versions of router from "next/router"
+import { useRouter } from "next/navigation"
+import StakingUI from "@/components/StakingUI";
+
+import WalletContext from '@/contexts/WalletContext';
+
 // wallet selector modal ui
 import '@near-wallet-selector/modal-ui/styles.css'
 import { setupModal } from '@near-wallet-selector/modal-ui'
@@ -11,12 +17,8 @@ import { setupModal } from '@near-wallet-selector/modal-ui'
 import { setupWalletSelector } from '@near-wallet-selector/core'
 import { setupLedger } from '@near-wallet-selector/ledger'
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
-
-// note this is different from prior NextJS versions of router from "next/router"
-import { useRouter } from "next/navigation"
-import StakingUI from "@/components/StakingUI";
-
-import WalletContext from '@/contexts/WalletContext';
+import { setupHereWallet } from '@near-wallet-selector/here-wallet'
+import {setupWalletConnect} from "@near-wallet-selector/wallet-connect";
 
 export const NETWORK = process.env.NEXT_PUBLIC_NETWORK || 'mainnet'
 export const CONTRACT_ID = process.env.NEXT_PUBLIC_CONTRACT_NAME || 'count.mike.near'
@@ -44,7 +46,17 @@ export default function HomePage() {
                 modules: [
                     // todo: add wallet connect setup here
                     setupMyNearWallet(),
-                    setupLedger()
+                    setupLedger(),
+                    setupHereWallet(),
+                    setupWalletConnect({
+                        projectId: "6ac6fa888fb53661396636cc747245ad",
+                        metadata: {
+                            name: 'NEAR Staking',
+                            description: 'Stake, unstake, withdraw NEAR',
+                            // url: 'http://127.0.0.1:3001', // todo
+                            icons: ['https://avatars.githubusercontent.com/u/37784886'],
+                        },
+                    }),
                 ],
             })
 
