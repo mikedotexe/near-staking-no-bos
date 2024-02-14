@@ -25,7 +25,8 @@ export const StakingUI = ({accountId, provider, accountConn}) => {
 
 
     const StakeUnstakeWithdraw = ({validator, method, amount}) => {
-        const [yoctoAmount, setYoctoAmount] = useState(0);
+        const saneDefaultAmount = amount === "1" ? "0" : amount
+        const [yoctoAmount, setYoctoAmount] = useState(saneDefaultAmount);
 
         const handleCancel = () => {
             // eventually add fade-out effect
