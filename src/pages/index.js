@@ -49,7 +49,7 @@ export default function HomePage() {
                     setupLedger(),
                     setupHereWallet(),
                     setupWalletConnect({
-                        projectId: "6ac6fa888fb53661396636cc747245ad",
+                        projectId: "31e2eaaed3fbf6a6af0ecb7b17f59d84",
                         metadata: {
                             name: 'NEAR Staking',
                             description: 'Stake, unstake, withdraw NEAR',
