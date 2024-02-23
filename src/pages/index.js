@@ -44,6 +44,8 @@ export default function HomePage() {
         const start = async () => {
             console.log('aloha projectId',PROJECT_ID)
             const walletSelector = await setupWalletSelector({
+                debug: true,
+                optimizeWalletOrder: false,
                 network: NETWORK,
                 modules: [
                     // todo: add wallet connect setup here
@@ -55,7 +57,7 @@ export default function HomePage() {
                         metadata: {
                             name: 'NEAR Staking',
                             description: 'Stake, unstake, withdraw NEAR',
-                            // url: 'http://127.0.0.1:3001', // todo
+                            url: "https://github.com/near/wallet-selector",
                             icons: ['https://avatars.githubusercontent.com/u/37784886'],
                         },
                     }),
