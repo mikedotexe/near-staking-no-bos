@@ -707,7 +707,12 @@ export const StakingUI = ({accountId, provider, accountConn}) => {
                                                             <button style={{
                                                                 marginLeft: "10px",
                                                                 background: "linear-gradient(to right, #9797ff 6%, rgba(151, 151, 255, 0.6) 100%, #17d9d4 100%)",
-                                                            }}>Stake
+                                                            }} onClick={() =>
+                                                                walletStake({
+                                                                    validator: detail.validatorAddress,
+                                                                    amount: `42${yoctoZeroes}`,
+                                                                })
+                                                            }>Stake
                                                             </button>
                                                         </div>
                                                     </div>
