@@ -21,6 +21,7 @@ import { setupHereWallet } from '@near-wallet-selector/here-wallet'
 import {setupWalletConnect} from "@near-wallet-selector/wallet-connect";
 
 export const NETWORK = process.env.NEXT_PUBLIC_NETWORK || 'mainnet'
+export const PROJECT_ID = process.env.NEXT_PUBLIC_PROJECT_ID || 'please set env var for NEXT_PUBLIC_PROJECT_ID'
 export const CONTRACT_ID = process.env.NEXT_PUBLIC_CONTRACT_NAME || 'count.mike.near'
 
 export default function HomePage() {
@@ -41,6 +42,7 @@ export default function HomePage() {
     // on load (zero deps)
     useEffect(() => {
         const start = async () => {
+            console.log('aloha projectId',PROJECT_ID)
             const walletSelector = await setupWalletSelector({
                 network: NETWORK,
                 modules: [
@@ -49,7 +51,7 @@ export default function HomePage() {
                     setupLedger(),
                     setupHereWallet(),
                     setupWalletConnect({
-                        projectId: "6ac6fa888fb53661396636cc747245ad",
+                        projectId: PROJECT_ID,
                         metadata: {
                             name: 'NEAR Staking',
                             description: 'Stake, unstake, withdraw NEAR',
